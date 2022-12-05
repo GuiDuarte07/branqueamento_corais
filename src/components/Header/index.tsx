@@ -1,7 +1,7 @@
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 const Header: React.FC = () => {
   const { data: session } = useSession();
@@ -23,7 +23,7 @@ const Header: React.FC = () => {
   }
 
   return (
-    <header className="px-4 md:px-16 h-16 w-full  bg-white flex justify-between items-center">
+    <header className="px-4 md:px-16 h-16 w-full bg-white flex justify-between items-center">
       <div className="">
         <h2 className="">RepoAmazing</h2>
       </div>

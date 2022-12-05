@@ -1,6 +1,4 @@
 import type { NextPage } from 'next';
-import { signIn, signOut, useSession } from 'next-auth/react';
-import Image from 'next/image';
 import ArticleCard from '../components/ArticleCard';
 import Container from '../components/container';
 import Header from '../components/Header';
