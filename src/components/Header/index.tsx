@@ -23,7 +23,7 @@ const Header: React.FC = () => {
   }
 
   return (
-    <header className="px-16 h-16 w-full fixed bg-white flex justify-between items-center">
+    <header className="px-4 md:px-16 h-16 w-full  bg-white flex justify-between items-center">
       <div className="">
         <h2 className="">RepoAmazing</h2>
       </div>
@@ -42,6 +42,7 @@ const Header: React.FC = () => {
               />
             </label>
             <input
+              autoFocus
               ref={searchInputRef}
               onKeyDown={(e) => escKeyInput(e)}
               id="search"

@@ -54,6 +54,7 @@ model User {
   role          Role      @default(USER)
   accounts      Account[]
   sessions      Session[]
+  Article       Article[]
 }
 
 model Article {
@@ -61,10 +62,13 @@ model Article {
   createdAt DateTime   @default(now())
   title     String
   published Boolean    @default(true)
+  approved  Boolean    @default(false)
   abstract  String
   pdfpath   String?
   keywords  keywords[]
   Authors   Authors[]
+  User      User       @relation(fields: [userId], references: [id])
+  userId    String
 }
 
 model keywords {
@@ -76,6 +80,8 @@ model keywords {
 model Authors {
   id        String  @id @default(cuid())
   fullname  String
+  email     String
+  phone     String
   article   Article @relation(fields: [articleId], references: [id])
   articleId String
 }
