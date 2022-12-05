@@ -1,10 +1,26 @@
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import { useRouter } from 'next/router';
+import React, { useEffect, useRef, useState } from 'react';
 
 const Header: React.FC = () => {
   const { data: session } = useSession();
   const [showSearchBar, setShowSearchBar] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  function escKeyInput(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Escape') {
+      setShowSearchBar(false);
+    }
+  }
+
+  function searchArticle() {
+    const searchText = searchInputRef.current?.value;
+    if (searchText) {
+      router.push(`/${searchText}`);
+    }
+  }
 
   return (
     <header className="px-16 h-16 w-full fixed bg-white flex justify-between items-center">
@@ -13,7 +29,10 @@ const Header: React.FC = () => {
       </div>
       <div className="flex-1 text-center items-center justify-center flex h-full">
         {showSearchBar ? (
-          <form className="w-5/6 flex items-center gap-2 h-4/6 border-b-2 border-gray-500">
+          <form
+            onSubmit={() => searchArticle()}
+            className="w-5/6 flex items-center gap-2 h-4/6 border-b-2 border-gray-500"
+          >
             <label htmlFor="search">
               <Image
                 alt="search"
@@ -23,11 +42,13 @@ const Header: React.FC = () => {
               />
             </label>
             <input
+              ref={searchInputRef}
+              onKeyDown={(e) => escKeyInput(e)}
               id="search"
               type="text"
               className="w-full h-4/6 bg-inherit outline-none"
             />
-            <button onClick={() => setShowSearchBar(false)}>
+            <button type="button" onClick={() => setShowSearchBar(false)}>
               <p className="font-bold text-xl">x</p>
             </button>
           </form>
