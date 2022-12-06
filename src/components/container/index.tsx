@@ -17,7 +17,7 @@ const Container: React.FC<{ children: ReactNode; home?: true }> = ({
           ></Image>
         </div>
       )}
-      <main className="pt-6 w-full lg:w-[896px] xl:w-[1152px] bg-white flex flex-col">
+      <main className="items-center pt-6 w-full lg:w-[896px] xl:w-[1152px] flex flex-col">
         {children}
       </main>
     </div>

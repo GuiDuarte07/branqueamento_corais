@@ -64,6 +64,7 @@ model Article {
   published Boolean    @default(true)
   approved  Boolean    @default(false)
   abstract  String
+  pdfName   String?
   pdfpath   String?
   keywords  keywords[]
   Authors   Authors[]
@@ -73,6 +74,7 @@ model Article {
 
 model keywords {
   id        Int     @id @default(autoincrement())
+  name      String
   article   Article @relation(fields: [articleId], references: [id])
   articleId String
 }
