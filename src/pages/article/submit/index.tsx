@@ -15,7 +15,7 @@ const Article: NextPage = () => {
 
   const [authors, setAuthors] = useState<Author[]>([
     {
-      name: 'José Guilherme Duarte Abrantes',
+      fullname: 'José Guilherme Duarte Abrantes',
       phone: '(84)9997-14703',
       email: 'guilduarte07@gmail.com',
     },
@@ -56,7 +56,7 @@ const Article: NextPage = () => {
       const prevState = structuredClone(prev);
 
       prevState.push({
-        name: authorNameInput,
+        fullname: authorNameInput,
         phone: authorPhoneInput,
         email: authorEmailInput,
       });
@@ -81,6 +81,7 @@ const Article: NextPage = () => {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setPdfUploadError(error.response?.data.error as string);
+        setFileLoading(true);
       }
     }
 
@@ -105,6 +106,7 @@ const Article: NextPage = () => {
         }
       } catch (error) {
         console.log(error);
+        setFileLoading(false);
       }
     }
   }
@@ -173,10 +175,13 @@ const Article: NextPage = () => {
 
           <div className="flex flex-col gap-4">
             <h3 className="text-xl py-4">Autores que escreveram esse artigo</h3>
-            {authors.map(({ name, email, phone }) => (
-              <div key={name} className="pb-1 flex border-b border-b-slate-400">
+            {authors.map(({ fullname, email, phone }) => (
+              <div
+                key={email}
+                className="pb-1 flex border-b border-b-slate-400"
+              >
                 <div className="flex-1 flex flex-col justify-center">
-                  <h3 className="font-bold">{name}</h3>
+                  <h3 className="font-bold">{fullname}</h3>
                   <div className="pl-4 flex gap-8">
                     <h4 className="text-gray-500">{email}</h4>
                     <p className="my-auto text-sm text-gray-400">{phone}</p>

@@ -1,37 +1,22 @@
-import type { NextPage } from 'next';
+import type { GetStaticProps, NextPage } from 'next';
 import ArticleCard from '../components/ArticleCard';
 import Container from '../components/container';
 import Header from '../components/Header';
+import prisma from '../lib/prismadb';
+import { useState } from 'react';
 
-const submitedArticles = [
-  {
-    id: 'dsaojfsdojifsoi',
-    authors: ['Guilherme Duarte', 'Raquel Leite'],
-    title: 'O branqueamento dos corais é a prova cabal do fim do mundo',
-    createdAt: new Date(2022, 11, 11),
-  },
-  {
-    id: 'dsaojfsdojifdsoi',
-    authors: [
-      'Guilherme Duarte',
-      'Raquel Leite',
-      'Guilherme Duarte',
-      'Raquel Leite',
-      'Guilherme Duarte',
-      'Raquel Leite',
-    ],
-    title: 'O branqueamento dos corais é a prova cabal do fim do mundo',
-    createdAt: new Date(2022, 11, 11),
-  },
-  {
-    id: 'dsaojfsdojiafsoi',
-    authors: ['Guilherme Duarte', 'Raquel Leite'],
-    title: 'O branqueamento dos corais é a prova cabal do fim do mundo',
-    createdAt: new Date(2022, 11, 11),
-  },
-];
+type Props = {
+  articles: {
+    title: string;
+    Authors: { fullname: string }[];
+    id: string;
+    pdfpath: string | null;
+  }[];
+};
 
-const Home: NextPage = () => {
+const Home: NextPage<Props> = ({ articles }) => {
+  const [submitedArticles, setSubmitedArticles] = useState(articles);
+  console.log(submitedArticles);
   return (
     <>
       <Header />
@@ -43,14 +28,13 @@ const Home: NextPage = () => {
           Artigos já submetidos
         </h2>
         <section className="flex gap-4 md:flex-row flex-col">
-          {submitedArticles.map(({ id, title, authors, createdAt }) => (
+          {submitedArticles.map(({ id, title, Authors }) => (
             <ArticleCard
               className="max-w-sm my-4"
               key={id}
               id={id}
               title={title}
-              authors={authors}
-              createdAt={createdAt}
+              authors={Authors.map((author) => author.fullname)}
             />
           ))}
         </section>
@@ -60,3 +44,22 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+export const getStaticProps: GetStaticProps = async () => {
+  const articles = await prisma.article.findMany({
+    where: { approved: true, published: true },
+    take: 10,
+    select: {
+      title: true,
+      Authors: { select: { fullname: true } },
+      id: true,
+      pdfpath: true,
+    },
+  });
+
+  return {
+    props: {
+      articles,
+    },
+  };
+};

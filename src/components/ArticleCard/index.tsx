@@ -3,18 +3,11 @@ import Link from 'next/link';
 type Props = {
   title: string;
   authors: string[];
-  createdAt: Date;
   className: string;
   id: string;
 };
 
-const ArticleCard: React.FC<Props> = ({
-  title,
-  authors,
-  createdAt,
-  id,
-  className,
-}) => {
+const ArticleCard: React.FC<Props> = ({ title, authors, id, className }) => {
   return (
     <div className={className}>
       <Link
@@ -28,11 +21,11 @@ const ArticleCard: React.FC<Props> = ({
       <p className="text-sm my-1">{authors.map((author) => author + ', ')}</p>
       <p className="text-sm">
         publicado em:{' '}
-        <span>
+        {/* <span>
           {createdAt.toLocaleDateString() +
             ' ' +
             createdAt.toLocaleTimeString()}
-        </span>
+        </span> */}
       </p>
     </div>
   );

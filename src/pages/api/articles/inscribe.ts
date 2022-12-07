@@ -51,6 +51,8 @@ const handler = async (
       .status(400)
       .json({ error: 'Tipo dos dados enviados são inválidos' });
 
+  console.log(authors);
+
   const result = await prisma.article.create({
     data: {
       title,
@@ -63,6 +65,11 @@ const handler = async (
           data: keywords.map((keyword) => ({
             name: keyword,
           })),
+        },
+      },
+      Authors: {
+        createMany: {
+          data: authors,
         },
       },
     },
