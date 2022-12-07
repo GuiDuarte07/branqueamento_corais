@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { NextPage } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { Author } from '../../../@types/types';
 import Container from '../../../components/container';
 import Header from '../../../components/Header';
@@ -11,7 +11,7 @@ import { InscribeApiResponde } from '../../api/articles/inscribe';
 
 const Article: NextPage = () => {
   const [title, setTitle] = useState<string>('');
-  const textareaRef = useRef<HTMLTextAreaElement>();
+  const [abstract, setAbstract] = useState<string>('');
 
   const [authors, setAuthors] = useState<Author[]>([
     {
@@ -24,11 +24,15 @@ const Article: NextPage = () => {
   const [authorNameInput, setAuthorNameInput] = useState<string>('');
   const [authorEmailInput, setAuthorEmailInput] = useState<string>('');
   const [authorPhoneInput, setAuthorPhoneInput] = useState<string>('');
+  const [invalidAuthor, setInvalidAuthor] = useState<string>('');
 
   const [fileLoading, setFileLoading] = useState<boolean>(false);
-  const [selectedFile, setSelecetFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [pdfUploadError, setPdfUploadError] = useState<string>('');
 
-  function addNewAuthor(e: React.FormEvent<HTMLFormElement>) {
+  const [sucessfullyModal, setSucessfullyModal] = useState<boolean>(false);
+
+  function addNewAuthor(e: React.MouseEvent<HTMLButtonElement>) {
     e.preventDefault();
 
     const result = validateNewAuthor(
@@ -37,25 +41,36 @@ const Article: NextPage = () => {
       authorPhoneInput
     );
 
-    //if (!result.email && !result.name && !result.phone) return;
+    if (!result.email || !result.name || !result.phone) {
+      setInvalidAuthor('Algum dado na inscrição do autor está incorreto');
+      return;
+    }
+
+    if (invalidAuthor) setInvalidAuthor('');
+
+    setAuthorEmailInput('');
+    setAuthorNameInput('');
+    setAuthorPhoneInput('');
 
     setAuthors((prev) => {
       const prevState = structuredClone(prev);
 
-      prevState[prevState.length - 1].name = authorNameInput;
-      prevState[prevState.length - 1].email = authorEmailInput;
-      prevState[prevState.length - 1].phone = authorPhoneInput;
-
-      prevState.push({ name: '', phone: '', email: '' });
+      prevState.push({
+        name: authorNameInput,
+        phone: authorPhoneInput,
+        email: authorEmailInput,
+      });
 
       return prevState;
     });
   }
 
-  async function submitApplication() {
+  async function submitApplication(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setFileLoading(true);
-    if (!selectedFile) return;
+    if (!selectedFile || !!!title || !!!abstract) return;
 
+    console.log('entrou');
     let fileResult: { filePath: string; fileName: string } | undefined;
 
     try {
@@ -64,7 +79,9 @@ const Article: NextPage = () => {
       const { data } = await axios.post('/api/articles/upload', formData);
       fileResult = data;
     } catch (error) {
-      console.log(error);
+      if (axios.isAxiosError(error)) {
+        setPdfUploadError(error.response?.data.error as string);
+      }
     }
 
     if (fileResult) {
@@ -74,27 +91,53 @@ const Article: NextPage = () => {
           '/api/articles/inscribe',
           {
             title,
-            abstract: textareaRef.current?.value,
+            abstract,
             pdfName: fileName,
             pdfpath: filePath,
             authors,
-            keywords: ['dasd', 'sdasd'],
+            keywords: ['coming soon'],
           }
         );
-        console.log(data);
+        if (data) {
+          setSucessfullyModal(true);
+          window.scrollTo(0, 0);
+          document.body.style.overflow = 'hidden';
+        }
       } catch (error) {
         console.log(error);
       }
     }
-
-    setFileLoading(false);
   }
 
   return (
-    <>
+    <div className="relative">
+      {sucessfullyModal && (
+        <div className="bg-opacity-90 absolute h-screen w-screen bg-slate-100 z-10 flex items-center justify-center">
+          <div className="w-96 h-64 bg-white flex flex-col items-center justify-center">
+            <Image
+              src="/images/sign-check-svgrepo-com.svg"
+              width={60}
+              height={60}
+              alt="Cadastro confirmado"
+            />
+            <h1 className="font-bold mt-8 text-lg">
+              Seu artigo foi enviado para aprovação!
+            </h1>
+            <Link
+              href="/"
+              className="mt-4 p-2 rounded bg-sky-600 font-bold text-white"
+            >
+              Ir para a home
+            </Link>
+          </div>
+        </div>
+      )}
       <Header />
       <Container>
-        <section className="pb-16 md:w-7/12 flex flex-col gap-4">
+        <form
+          onSubmit={(e) => submitApplication(e)}
+          className="pb-16 w-full md:w-7/12 flex flex-col gap-4"
+        >
           <div className="h-20 w-full border-b-2 border-b-gray-500 flex">
             <p className="flex-1">RepoAmazing</p>
             <div className="">
@@ -103,11 +146,9 @@ const Article: NextPage = () => {
             </div>
           </div>
 
-          <h1 className="mt-10 mb-2 font-normal text-2xl ">
-            Submeta seu artigo
-          </h1>
+          <h1 className="mt-10 mb-2 font-bold text-3xl ">Submeta seu artigo</h1>
 
-          <label htmlFor="title" className="">
+          <label htmlFor="title" className="text-xl">
             Insira o título do seu artigo
           </label>
 
@@ -116,21 +157,22 @@ const Article: NextPage = () => {
             onChange={(e) => setTitle(e.target.value)}
             type="text"
             id="title"
-            className=""
+            className="outline-none border-b-2 border-b-slate-500"
             placeholder="título do artigo"
           />
 
-          <label htmlFor="resume" className="">
+          <label htmlFor="resume" className="text-xl">
             Insira um resumo do seu artigo
           </label>
           <textarea
-            ref={textareaRef}
+            value={abstract}
+            onChange={(e) => setAbstract(e.target.value)}
             id="resume"
             className="bg-gray-100 min-h-[150px] rounded pt-1 pl-2 text-gray-700 outline-none"
           />
 
           <div className="flex flex-col gap-4">
-            Autores que escreveram esse artigo
+            <h3 className="text-xl py-4">Autores que escreveram esse artigo</h3>
             {authors.map(({ name, email, phone }) => (
               <div key={name} className="pb-1 flex border-b border-b-slate-400">
                 <div className="flex-1 flex flex-col justify-center">
@@ -150,8 +192,8 @@ const Article: NextPage = () => {
             ))}
           </div>
 
-          <form className="flex flex-col" onSubmit={(e) => addNewAuthor(e)}>
-            <h3 className="">Autores</h3>
+          <section className="flex flex-col">
+            <h3 className="text-xl py-4">Autores</h3>
             <div className="flex gap-4 w-full">
               <div className="flex flex-col flex-1 gap-1">
                 <label htmlFor="authorName" className="">
@@ -185,16 +227,20 @@ const Article: NextPage = () => {
                   onChange={(e) => setAuthorPhoneInput(e.target.value)}
                 />
               </div>
+
               <button
+                onClick={(e) => addNewAuthor(e)}
                 className="bg-amber-400 w-8 rounded-md font-bold text-lg"
                 type="submit"
               >
                 +
               </button>
             </div>
-          </form>
+          </section>
 
-          <label htmlFor="pdfFile" className="">
+          {invalidAuthor && <p className="text-red-500">{invalidAuthor}</p>}
+
+          <label htmlFor="pdfFile" className="text-xl">
             Enviar arquivo PDF do artigo
           </label>
           <input
@@ -205,14 +251,27 @@ const Article: NextPage = () => {
             onChange={({ target }) => {
               if (target.files) {
                 const file = target.files[0];
-                setSelecetFile(file);
+                setSelectedFile(file);
               }
             }}
           />
-        </section>
-        <button onClick={() => submitApplication()}>Enviar um arquivo</button>
+          {pdfUploadError && <p className="text-red-600">{pdfUploadError}</p>}
+          <button
+            className="py-2 px-4 bg-sky-700 rounded mt-4 text-white text-lg"
+            disabled={fileLoading || !selectedFile || !!!title || !!!abstract}
+            style={{
+              opacity:
+                !fileLoading && selectedFile && !!title && !!abstract
+                  ? '1'
+                  : '0.3',
+            }}
+            type="submit"
+          >
+            Submeter Artigo
+          </button>
+        </form>
       </Container>
-    </>
+    </div>
   );
 };
 

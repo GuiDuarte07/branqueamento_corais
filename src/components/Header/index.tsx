@@ -1,5 +1,6 @@
 import { signIn, signOut, useSession } from 'next-auth/react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import React, { useRef, useState } from 'react';
 
@@ -25,7 +26,9 @@ const Header: React.FC = () => {
   return (
     <header className="px-4 md:px-16 h-16 w-full bg-white flex justify-between items-center">
       <div className="">
-        <h2 className="">RepoAmazing</h2>
+        <Link href="/" className="">
+          RepoAmazing
+        </Link>
       </div>
       <div className="flex-1 text-center items-center justify-center flex h-full">
         {showSearchBar ? (
