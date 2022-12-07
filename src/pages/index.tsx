@@ -8,7 +8,7 @@ const submitedArticles = [
     id: 'dsaojfsdojifsoi',
     authors: ['Guilherme Duarte', 'Raquel Leite'],
     title: 'O branqueamento dos corais é a prova cabal do fim do mundo',
-    createdAt: new Date(),
+    createdAt: new Date(2022, 11, 11),
   },
   {
     id: 'dsaojfsdojifdsoi',
@@ -21,13 +21,13 @@ const submitedArticles = [
       'Raquel Leite',
     ],
     title: 'O branqueamento dos corais é a prova cabal do fim do mundo',
-    createdAt: new Date(),
+    createdAt: new Date(2022, 11, 11),
   },
   {
     id: 'dsaojfsdojiafsoi',
     authors: ['Guilherme Duarte', 'Raquel Leite'],
     title: 'O branqueamento dos corais é a prova cabal do fim do mundo',
-    createdAt: new Date(),
+    createdAt: new Date(2022, 11, 11),
   },
 ];
 
