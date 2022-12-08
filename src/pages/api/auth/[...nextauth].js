@@ -1,8 +1,8 @@
-import NextAuth from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
-import GithubProvider from "next-auth/providers/github"
-import { PrismaAdapter } from "@next-auth/prisma-adapter"
-import prisma from "../../../lib/prismadb"
+import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import GithubProvider from 'next-auth/providers/github';
+import { PrismaAdapter } from '@next-auth/prisma-adapter';
+import prisma from '../../../lib/prismadb';
 
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
@@ -21,9 +21,8 @@ export const authOptions = {
     async session({ session, user }) {
       session.user.role = user.role; // Add role value to user object so it is passed along with session
       return session;
-    }
+    },
   },
-  secret: process.env.SECRET
-}
-export default NextAuth(authOptions)
-
+  secret: process.env.SECRET,
+};
+export default NextAuth(authOptions);

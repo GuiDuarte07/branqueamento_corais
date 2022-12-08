@@ -1,22 +1,44 @@
-import type { NextPage } from 'next';
+import { BlockList } from 'net';
+import type {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from 'next';
+import { unstable_getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ParsedUrlQuery } from 'querystring';
 import Container from '../../components/container';
 import Header from '../../components/Header';
+import prisma from '../../lib/prismadb';
+import { authOptions } from '../api/auth/[...nextauth]';
 
-const submitedArticles = {
-  id: 'dsaojfsdojifsoi',
-  authors: ['Guilherme Duarte', 'Raquel Leite'],
-  title: 'O branqueamento dos corais é a prova cabal do fim do mundo',
-  abstract:
-    'jsoidaiodjasoid jasiod jasoid jasoid jasoidj asoid jasiod jasoidj asoidj asiodj asiod jasiodj asiodj asoidj asiod joiwamd oaninfiaf io ao pp a moadpmp mopadmpoa s os p apom amdoa mopsopma  m o o ampsd spmdo opasmd',
-  createdAt: new Date(),
-  pdf: '1670264029640_7bfaff3161b44274a3a54915a7aa955e.pdf',
+type Article = {
+  title: string;
+  User: {
+    name: string | null;
+    email: string | null;
+  };
+  Authors: { fullname: string; email: string; phone: string }[];
+  abstract: string;
+  pdfpath: string | null;
+  keywords: {
+    name: string;
+  }[];
+  approved: boolean;
 };
 
-const Article: NextPage = () => {
+const Article: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = ({ article }) => {
+  const { data: session } = useSession();
   return (
     <>
+      <Head>
+        <title>{article.title}</title>
+      </Head>
       <Header />
       <Container>
         <section className="md:max-w-xl flex flex-col mx-auto">
@@ -27,20 +49,18 @@ const Article: NextPage = () => {
               <p className="">Todos os direitos reservados - 2022</p>
             </div>
           </div>
-          <h1 className="mt-10 mb-2 font-normal text-2xl ">
-            {submitedArticles.title}
-          </h1>
+          <h1 className="mt-10 mb-2 font-normal text-2xl ">{article.title}</h1>
 
           <p className="text-sm max-w-full mb-4 border-b-2 border-b-gray-400">
-            {submitedArticles.authors.map((author) => author + ', ')}
+            {article.Authors.map((author) => author.fullname + ', ')}
           </p>
 
           <h2 className="text-lg font-bold">Resumo</h2>
-          <p className="bg-gray-100 p-2 my-2">{submitedArticles.abstract}</p>
+          <p className="bg-gray-100 p-2 my-2">{article.abstract}</p>
 
-          <div className="">
+          <div className="flex justify-between items-center">
             <Link
-              href={`/upload/${submitedArticles.pdf}`}
+              href={`/upload/${article.pdfpath}`}
               className="flex my-2 bg-sky-700 p-2 w-fit"
               target="_blank"
             >
@@ -52,6 +72,17 @@ const Article: NextPage = () => {
               />
               <p className="text-xl pl-4 text-white">Baixar PDF</p>
             </Link>
+            {!article.approved && (
+              <button className="flex p-3 rounded bg-slate-200">
+                <Image
+                  width={24}
+                  height={24}
+                  alt="aprovar"
+                  src="/images/sign-check-svgrepo-com.svg"
+                ></Image>
+                Aprovar
+              </button>
+            )}
           </div>
         </section>
       </Container>
@@ -60,3 +91,53 @@ const Article: NextPage = () => {
 };
 
 export default Article;
+
+interface QParams extends ParsedUrlQuery {
+  articleId: string;
+}
+
+export const getServerSideProps: GetServerSideProps<
+  {
+    article: Article;
+  },
+  QParams
+> = async ({ params, req, res }) => {
+  let articleId: string;
+
+  if (typeof params?.articleId === 'string') {
+    articleId = params?.articleId;
+  } else {
+    return {
+      redirect: { destination: '/404', permanent: false },
+    };
+  }
+
+  const article = await prisma.article.findUnique({
+    where: { id: articleId },
+    select: {
+      abstract: true,
+      title: true,
+      pdfpath: true,
+      Authors: { select: { email: true, phone: true, fullname: true } },
+      User: { select: { name: true, email: true } },
+      keywords: { select: { name: true } },
+      approved: true,
+    },
+  });
+
+  if (!article)
+    return {
+      redirect: { destination: '/404', permanent: false },
+    };
+
+  if (article.approved === false) {
+    const session = await unstable_getServerSession(req, res, authOptions);
+    if (!session || session?.user?.role === 'USER')
+      return {
+        redirect: { destination: '/404', permanent: false },
+      };
+  }
+  return {
+    props: { article },
+  };
+};

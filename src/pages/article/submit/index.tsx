@@ -3,7 +3,7 @@ import type { NextPage } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState } from 'react';
-import { Author } from '../../../@types/types';
+import { Author } from '../../../../types/types';
 import Container from '../../../components/container';
 import Header from '../../../components/Header';
 import validateNewAuthor from '../../../utils/Validations';
