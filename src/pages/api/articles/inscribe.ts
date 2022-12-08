@@ -3,6 +3,7 @@ import { unstable_getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]';
 import prisma from '../../../lib/prismadb';
 import { Authors } from '@prisma/client';
+import { InscribeApiResponde } from '../../../../types/types';
 
 interface ExtendedNextApiRequest extends NextApiRequest {
   body: {
@@ -15,8 +16,6 @@ interface ExtendedNextApiRequest extends NextApiRequest {
   };
 }
 
-export type InscribeApiResponde = { sucessfully: true } | { error: string };
-
 const handler = async (
   req: ExtendedNextApiRequest,
   res: NextApiResponse<InscribeApiResponde>
@@ -26,11 +25,13 @@ const handler = async (
   const session = await unstable_getServerSession(req, res, authOptions);
 
   if (!session) {
-    res.status(401).json({ error: 'Não permitido' });
+    res.status(401).json({ isError: true, message: 'Não permitido' });
   }
 
   if (!title || !abstract || !pdfName || !pdfpath || !authors || !keywords) {
-    return res.status(400).json({ error: 'Algum dado não foi enviado' });
+    return res
+      .status(400)
+      .json({ isError: true, message: 'Algum dado não foi enviado' });
   }
 
   if (
@@ -41,43 +42,47 @@ const handler = async (
     !Array.isArray(authors) ||
     !Array.isArray(keywords)
   ) {
-    return res
-      .status(400)
-      .json({ error: 'Tipo dos dados enviados são inválidos' });
+    return res.status(400).json({
+      isError: true,
+      message: 'Tipo dos dados enviados são inválidos',
+    });
   }
 
   if (!session?.user?.email)
+    return res.status(400).json({
+      isError: true,
+      message: 'Tipo dos dados enviados são inválidos',
+    });
+
+  try {
+    await prisma.article.create({
+      data: {
+        title,
+        abstract,
+        pdfName,
+        pdfpath,
+        User: { connect: { email: session?.user?.email } },
+        keywords: {
+          createMany: {
+            data: keywords.map((keyword) => ({
+              name: keyword,
+            })),
+          },
+        },
+        Authors: {
+          createMany: {
+            data: authors,
+          },
+        },
+      },
+    });
+  } catch (e) {
     return res
-      .status(400)
-      .json({ error: 'Tipo dos dados enviados são inválidos' });
+      .status(404)
+      .json({ message: 'Erro interno no servidor', isError: true });
+  }
 
-  console.log(authors);
-
-  const result = await prisma.article.create({
-    data: {
-      title,
-      abstract,
-      pdfName,
-      pdfpath,
-      User: { connect: { email: session?.user?.email } },
-      keywords: {
-        createMany: {
-          data: keywords.map((keyword) => ({
-            name: keyword,
-          })),
-        },
-      },
-      Authors: {
-        createMany: {
-          data: authors,
-        },
-      },
-    },
-  });
-
-  console.log(result);
-
-  res.status(200).json({ sucessfully: true });
+  res.status(200).json({ message: 'Requisição concluida', isError: false });
 };
 
 export default handler;

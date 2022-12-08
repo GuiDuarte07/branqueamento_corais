@@ -3,3 +3,5 @@ export type Author = {
   phone: string;
   email: string;
 };
+
+export type InscribeApiResponde = { message: string; isError: boolean };
