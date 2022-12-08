@@ -10,6 +10,7 @@ declare module 'next-auth' {
       role: 'USER' | 'ADMIN' | 'DEV';
       email: string;
       name: string;
+      image: string;
     };
   }
 }

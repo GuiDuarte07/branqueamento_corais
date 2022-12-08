@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { BlockList } from 'net';
 import type {
   GetServerSideProps,
@@ -10,12 +11,14 @@ import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ParsedUrlQuery } from 'querystring';
+import { InscribeApiResponde } from '../../../types/types';
 import Container from '../../components/container';
 import Header from '../../components/Header';
 import prisma from '../../lib/prismadb';
 import { authOptions } from '../api/auth/[...nextauth]';
 
 type Article = {
+  id: string;
   title: string;
   User: {
     name: string | null;
@@ -23,7 +26,7 @@ type Article = {
   };
   Authors: { fullname: string; email: string; phone: string }[];
   abstract: string;
-  pdfpath: string | null;
+  pdfName: string | null;
   keywords: {
     name: string;
   }[];
@@ -33,7 +36,14 @@ type Article = {
 const Article: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = ({ article }) => {
-  const { data: session } = useSession();
+  async function aprroveArticle() {
+    const { data } = await axios.post<InscribeApiResponde>(
+      '/api/articles/approve',
+      { articleId: article.id }
+    );
+    console.log(data);
+  }
+
   return (
     <>
       <Head>
@@ -60,7 +70,7 @@ const Article: NextPage<
 
           <div className="flex justify-between items-center">
             <Link
-              href={`/upload/${article.pdfpath}`}
+              href={`/upload/${article.pdfName}`}
               className="flex my-2 bg-sky-700 p-2 w-fit"
               target="_blank"
             >
@@ -73,7 +83,10 @@ const Article: NextPage<
               <p className="text-xl pl-4 text-white">Baixar PDF</p>
             </Link>
             {!article.approved && (
-              <button className="flex p-3 rounded bg-slate-200">
+              <button
+                onClick={() => aprroveArticle()}
+                className="flex p-3 rounded bg-slate-200"
+              >
                 <Image
                   width={24}
                   height={24}
@@ -115,9 +128,10 @@ export const getServerSideProps: GetServerSideProps<
   const article = await prisma.article.findUnique({
     where: { id: articleId },
     select: {
+      id: true,
       abstract: true,
       title: true,
-      pdfpath: true,
+      pdfName: true,
       Authors: { select: { email: true, phone: true, fullname: true } },
       User: { select: { name: true, email: true } },
       keywords: { select: { name: true } },

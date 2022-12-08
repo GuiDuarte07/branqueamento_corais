@@ -15,6 +15,7 @@ const handler = async (
   res: NextApiResponse<InscribeApiResponde>
 ) => {
   const { articleId } = req.body;
+  console.log(articleId);
 
   const session = await unstable_getServerSession(req, res, authOptions);
 
@@ -22,7 +23,7 @@ const handler = async (
     res.status(401).json({ message: 'Não permitido', isError: true });
   }
 
-  if (articleId !== 'string' || !articleId) {
+  if (typeof articleId !== 'string' || !articleId) {
     return res
       .status(400)
       .json({ message: 'Algum dado não foi enviado', isError: true });

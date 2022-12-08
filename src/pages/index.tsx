@@ -16,7 +16,6 @@ type Props = {
 
 const Home: NextPage<Props> = ({ articles }) => {
   const [submitedArticles, setSubmitedArticles] = useState(articles);
-  console.log(submitedArticles);
   return (
     <>
       <Header />
