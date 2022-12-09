@@ -69,6 +69,15 @@ const Header: React.FC = () => {
           </div>
         )}
       </div>
+      {router.route !== '/article/submit' && (
+        <Link
+          className="mr-4 hover:border-b-yellow-400 border-b-2 border-b-transparent"
+          href="/article/submit"
+        >
+          Publicar
+        </Link>
+      )}
+
       <div className="">
         <button
           className="border-2 py-2 px-2 border-blue-600"
