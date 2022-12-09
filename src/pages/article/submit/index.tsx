@@ -1,27 +1,30 @@
 import axios from 'axios';
-import type { NextPage } from 'next';
-import { useSession } from 'next-auth/react';
+import type {
+  GetServerSideProps,
+  InferGetServerSidePropsType,
+  NextPage,
+} from 'next';
+import { unstable_getServerSession } from 'next-auth';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { Author, InscribeApiResponde } from '../../../../types/types';
 import Container from '../../../components/container';
 import Header from '../../../components/Header';
 import validateNewAuthor from '../../../utils/Validations';
+import { authOptions } from '../../api/auth/[...nextauth]';
 
-const Article: NextPage = () => {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
+const Article: NextPage<
+  InferGetServerSidePropsType<typeof getServerSideProps>
+> = ({ user }) => {
   const [title, setTitle] = useState<string>('');
   const [abstract, setAbstract] = useState<string>('');
 
   const [authors, setAuthors] = useState<Author[]>([
     {
-      fullname: session?.user.name ?? '',
+      fullname: user.name,
       phone: '',
-      email: session?.user.email ?? '',
+      email: user.email,
     },
   ]);
 
@@ -74,7 +77,6 @@ const Article: NextPage = () => {
     setFileLoading(true);
     if (!selectedFile || !!!title || !!!abstract) return;
 
-    console.log('entrou');
     let fileResult: { filePath: string; fileName: string } | undefined;
 
     try {
@@ -85,7 +87,7 @@ const Article: NextPage = () => {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         setPdfUploadError(error.response?.data.error as string);
-        setFileLoading(true);
+        setFileLoading(false);
       }
     }
 
@@ -95,8 +97,8 @@ const Article: NextPage = () => {
         const { data } = await axios.post<InscribeApiResponde>(
           '/api/articles/inscribe',
           {
-            title,
-            abstract,
+            title: title,
+            abstract: abstract,
             pdfName: fileName,
             pdfpath: filePath,
             authors,
@@ -113,11 +115,6 @@ const Article: NextPage = () => {
         setFileLoading(false);
       }
     }
-  }
-
-  if (status === 'unauthenticated') {
-    router.push('/api/auth/signin');
-    return <></>;
   }
 
   return (
@@ -290,3 +287,24 @@ const Article: NextPage = () => {
 };
 
 export default Article;
+
+export const getServerSideProps: GetServerSideProps<{
+  user: {
+    role: 'USER' | 'ADMIN' | 'DEV';
+    email: string;
+    name: string;
+    image: string;
+  };
+}> = async ({ req, res }) => {
+  const session = await unstable_getServerSession(req, res, authOptions);
+  const user = session?.user;
+
+  if (!user)
+    return { redirect: { permanent: false, destination: '/api/auth/signin' } };
+
+  return {
+    props: {
+      user,
+    },
+  };
+};

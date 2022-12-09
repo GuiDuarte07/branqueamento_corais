@@ -1,15 +1,14 @@
 import axios from 'axios';
-import { BlockList } from 'net';
 import type {
   GetServerSideProps,
   InferGetServerSidePropsType,
   NextPage,
 } from 'next';
 import { unstable_getServerSession } from 'next-auth';
-import { useSession } from 'next-auth/react';
 import Head from 'next/head';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { ParsedUrlQuery } from 'querystring';
 import { InscribeApiResponde } from '../../../types/types';
 import Container from '../../components/container';
@@ -36,12 +35,13 @@ type Article = {
 const Article: NextPage<
   InferGetServerSidePropsType<typeof getServerSideProps>
 > = ({ article }) => {
+  const router = useRouter();
   async function aprroveArticle() {
     const { data } = await axios.post<InscribeApiResponde>(
       '/api/articles/approve',
       { articleId: article.id }
     );
-    console.log(data);
+    if (!data.isError) router.reload();
   }
 
   return (

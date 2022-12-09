@@ -69,12 +69,22 @@ const Header: React.FC = () => {
           </div>
         )}
       </div>
+
       {router.route !== '/article/submit' && (
         <Link
           className="mr-4 hover:border-b-yellow-400 border-b-2 border-b-transparent"
           href="/article/submit"
         >
           Publicar
+        </Link>
+      )}
+
+      {router.route !== '/article/approve' && session?.user.role !== 'USER' && (
+        <Link
+          className="mr-4 hover:border-b-yellow-400 border-b-2 border-b-transparent"
+          href="/article/approve"
+        >
+          Aprovar Artigos
         </Link>
       )}
 

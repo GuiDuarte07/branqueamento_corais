@@ -20,8 +20,8 @@ const ArticleCard: React.FC<Props> = ({ title, authors, id, className }) => {
       </Link>
       <p className="text-sm my-1">{authors.map((author) => author + ', ')}</p>
       <p className="text-sm">
-        publicado em:{' '}
-        {/* <span>
+        {/* publicado em:{' '}
+        <span>
           {createdAt.toLocaleDateString() +
             ' ' +
             createdAt.toLocaleTimeString()}

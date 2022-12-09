@@ -1,9 +1,11 @@
+import fs from 'fs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { unstable_getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]';
 import prisma from '../../../lib/prismadb';
 import { Authors } from '@prisma/client';
 import { InscribeApiResponde } from '../../../../types/types';
+import path from 'path';
 
 interface ExtendedNextApiRequest extends NextApiRequest {
   body: {
@@ -14,6 +16,12 @@ interface ExtendedNextApiRequest extends NextApiRequest {
     authors: Authors[] | undefined;
     keywords: string[] | undefined;
   };
+}
+
+function deleteFile(pdfName: string) {
+  //console.log(fs.readdirSync(''));
+  //console.log(path.resolve('./'));
+  fs.unlinkSync(path.join(process.cwd() + '/public', '/upload/', pdfName));
 }
 
 const handler = async (
@@ -42,17 +50,20 @@ const handler = async (
     !Array.isArray(authors) ||
     !Array.isArray(keywords)
   ) {
+    deleteFile(pdfName);
     return res.status(400).json({
       isError: true,
       message: 'Tipo dos dados enviados são inválidos',
     });
   }
 
-  if (!session?.user?.email)
+  if (!session?.user?.email) {
+    deleteFile(pdfName);
     return res.status(400).json({
       isError: true,
       message: 'Tipo dos dados enviados são inválidos',
     });
+  }
 
   try {
     await prisma.article.create({
@@ -78,6 +89,7 @@ const handler = async (
     });
   } catch (e) {
     console.log(e);
+    deleteFile(pdfName);
     return res
       .status(404)
       .json({ message: 'Erro interno no servidor', isError: true });
