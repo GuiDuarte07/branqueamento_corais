@@ -77,6 +77,7 @@ const handler = async (
       },
     });
   } catch (e) {
+    console.log(e);
     return res
       .status(404)
       .json({ message: 'Erro interno no servidor', isError: true });

@@ -82,7 +82,7 @@ model keywords {
 model Authors {
   id        String  @id @default(cuid())
   fullname  String
-  email     String  @unique
+  email     String
   phone     String
   article   Article @relation(fields: [articleId], references: [id])
   articleId String

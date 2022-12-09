@@ -1,7 +1,9 @@
 import axios from 'axios';
 import type { NextPage } from 'next';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 import React, { useState } from 'react';
 import { Author, InscribeApiResponde } from '../../../../types/types';
 import Container from '../../../components/container';
@@ -9,14 +11,17 @@ import Header from '../../../components/Header';
 import validateNewAuthor from '../../../utils/Validations';
 
 const Article: NextPage = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
   const [title, setTitle] = useState<string>('');
   const [abstract, setAbstract] = useState<string>('');
 
   const [authors, setAuthors] = useState<Author[]>([
     {
-      fullname: 'José Guilherme Duarte Abrantes',
-      phone: '(84)9997-14703',
-      email: 'guilduarte07@gmail.com',
+      fullname: session?.user.name ?? '',
+      phone: '',
+      email: session?.user.email ?? '',
     },
   ]);
 
@@ -108,6 +113,11 @@ const Article: NextPage = () => {
         setFileLoading(false);
       }
     }
+  }
+
+  if (status === 'unauthenticated') {
+    router.push('/api/auth/signin');
+    return <></>;
   }
 
   return (
